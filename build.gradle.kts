@@ -1,8 +1,9 @@
 plugins {
     id("java")
+    id("application")
 }
 
-group = "org.example"
+group = "com.ssemi"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -10,9 +11,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:6.0.0"))
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+application {
+    mainClass.set("com.ssemi.MonitorApp")
 }
 
 tasks.test {
