@@ -1,0 +1,8 @@
+[
+  {"orderId": "ORD-20260612-0001", "sampleId": "S-001", "customerName": "삼성전자",  "quantity": "20", "status": "RESERVED"},
+  {"orderId": "ORD-20260612-0002", "sampleId": "S-001", "customerName": "SK하이닉스","quantity": "30", "status": "CONFIRMED"},
+  {"orderId": "ORD-20260612-0003", "sampleId": "S-002", "customerName": "LG이노텍",  "quantity": "15", "status": "PRODUCING"},
+  {"orderId": "ORD-20260612-0004", "sampleId": "S-002", "customerName": "현대모비스", "quantity": "5",  "status": "RELEASE"},
+  {"orderId": "ORD-20260612-0005", "sampleId": "S-003", "customerName": "인텔코리아", "quantity": "8",  "status": "REJECTED"},
+  {"orderId": "ORD-20260612-0006", "sampleId": "S-003", "customerName": "TSMC",      "quantity": "12", "status": "CONFIRMED"}
+]

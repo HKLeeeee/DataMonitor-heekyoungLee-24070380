@@ -1,0 +1,5 @@
+[
+  {"id": "S-001", "name": "SiC 파워기판-6인치",   "avgProductionTime": "0.8", "yield": "0.92", "stock": "50"},
+  {"id": "S-002", "name": "GaN-on-Si 에피웨이퍼", "avgProductionTime": "1.2", "yield": "0.85", "stock": "0"},
+  {"id": "S-003", "name": "Si 포토레지스트-8인치", "avgProductionTime": "0.5", "yield": "0.95", "stock": "10"}
+]
