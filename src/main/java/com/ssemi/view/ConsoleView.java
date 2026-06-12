@@ -9,15 +9,10 @@ import com.ssemi.service.MonitorService;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 콘솔 출력 전담 뷰. 비즈니스 로직 없이 포매팅·출력만 수행한다.
- */
 public class ConsoleView {
 
     private static final String SEPARATOR = "=".repeat(70);
     private static final String THIN_SEP  = "-".repeat(70);
-
-    // ── 메인 메뉴 ──────────────────────────────────────────────────────────
 
     public void printMenu() {
         System.out.println();
@@ -33,8 +28,6 @@ public class ConsoleView {
         System.out.println(THIN_SEP);
         System.out.print("  명령 입력: ");
     }
-
-    // ── [1] 시료 현황 ──────────────────────────────────────────────────────
 
     public void printSamples(List<Sample> samples) {
         System.out.println();
@@ -58,8 +51,6 @@ public class ConsoleView {
         System.out.printf("  총 %d개 시료 등록%n", samples.size());
     }
 
-    // ── [2] 주문 현황 ──────────────────────────────────────────────────────
-
     public void printOrderStatusCounts(Map<OrderStatus, Long> counts) {
         System.out.println();
         System.out.println(SEPARATOR);
@@ -76,8 +67,6 @@ public class ConsoleView {
         System.out.println(THIN_SEP);
         System.out.printf("  합계          : %5d건%n", total);
     }
-
-    // ── [3] 재고 상태 ──────────────────────────────────────────────────────
 
     public void printStockStatus(List<Sample> samples, List<Order> orders,
                                   java.util.function.BiFunction<Sample, List<Order>, StockStatus> evaluator) {
@@ -105,28 +94,24 @@ public class ConsoleView {
         System.out.println(THIN_SEP);
     }
 
-    // ── [4] 전체 요약 ──────────────────────────────────────────────────────
-
     public void printSummary(MonitorService.SummaryStats stats) {
         System.out.println();
         System.out.println(SEPARATOR);
         System.out.println("  [전체 요약]");
         System.out.println(THIN_SEP);
-        System.out.printf("  등록 시료 수  : %5d개%n", stats.totalSamples);
-        System.out.printf("  총 재고       : %5dea%n", stats.totalStock);
-        System.out.printf("  전체 주문 수  : %5d건 (REJECTED 제외)%n", stats.totalOrders);
+        System.out.printf("  등록 시료 수  : %5d개%n", stats.getTotalSamples());
+        System.out.printf("  총 재고       : %5dea%n", stats.getTotalStock());
+        System.out.printf("  전체 주문 수  : %5d건 (REJECTED 제외)%n", stats.getTotalOrders());
         System.out.println(THIN_SEP);
         System.out.println("  상태별 주문 건수:");
         for (OrderStatus status : new OrderStatus[]{
                 OrderStatus.RESERVED, OrderStatus.PRODUCING,
                 OrderStatus.CONFIRMED, OrderStatus.RELEASE}) {
-            long count = stats.statusCounts.getOrDefault(status, 0L);
+            long count = stats.getStatusCounts().getOrDefault(status, 0L);
             System.out.printf("    %-12s : %5d건%n", status.name(), count);
         }
         System.out.println(THIN_SEP);
     }
-
-    // ── 공통 메시지 ────────────────────────────────────────────────────────
 
     public void printRefreshed(String samplesPath, String ordersPath) {
         System.out.println();

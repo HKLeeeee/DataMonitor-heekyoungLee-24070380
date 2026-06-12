@@ -22,14 +22,11 @@ class MonitorServiceTest {
 
     @BeforeEach
     void setUp() {
-        // 테스트 리소스 디렉토리의 data 폴더를 데이터 소스로 사용
         URL resourceDir = getClass().getClassLoader().getResource("data");
         assertNotNull(resourceDir, "테스트 리소스 data 디렉토리가 존재해야 합니다.");
         DataRepository repository = new DataRepository(resourceDir.getPath());
         service = new MonitorService(repository);
     }
-
-    // ── 상태별 주문 집계 테스트 ─────────────────────────────────────────────
 
     @Test
     @DisplayName("상태별 주문 건수: RESERVED=1, CONFIRMED=2, PRODUCING=1, RELEASE=1")
@@ -53,7 +50,6 @@ class MonitorServiceTest {
     @Test
     @DisplayName("주문이 없으면 모든 카운트가 0")
     void countByStatus_emptyOrders_allZero() {
-        // 존재하지 않는 디렉토리 → 빈 데이터
         DataRepository emptyRepo = new DataRepository("/nonexistent/path");
         MonitorService emptyService = new MonitorService(emptyRepo);
 
@@ -64,8 +60,6 @@ class MonitorServiceTest {
         assertEquals(0L, counts.get(OrderStatus.PRODUCING));
         assertEquals(0L, counts.get(OrderStatus.RELEASE));
     }
-
-    // ── 재고 상태 판단 테스트 ──────────────────────────────────────────────
 
     @Test
     @DisplayName("재고가 0이면 고갈")
@@ -79,9 +73,19 @@ class MonitorServiceTest {
     }
 
     @Test
+    @DisplayName("재고가 0이고 CONFIRMED 주문이 있어도 고갈이 우선한다")
+    void evaluateStockStatus_zeroStockWithPendingOrders_returns고갈() {
+        Sample sample = new Sample("S-002", "GaN-on-Si", 1.2, 0.85, 0);
+        Order confirmed = new Order("ORD-001", "S-002", "고객A", 10, OrderStatus.CONFIRMED);
+
+        StockStatus status = service.evaluateStockStatus(sample, List.of(confirmed));
+
+        assertEquals(StockStatus.고갈, status);
+    }
+
+    @Test
     @DisplayName("재고가 대기 주문 수량보다 작으면 부족")
     void evaluateStockStatus_stockLessThanPending_returns부족() {
-        // 재고 10, CONFIRMED 주문 12 → 부족
         Sample sample = new Sample("S-003", "Si 포토레지스트", 0.5, 0.95, 10);
         Order confirmed = new Order("ORD-001", "S-003", "고객A", 12, OrderStatus.CONFIRMED);
 
@@ -115,7 +119,6 @@ class MonitorServiceTest {
     @Test
     @DisplayName("RESERVED 주문은 재고 상태 판단에서 제외된다")
     void evaluateStockStatus_reservedOrdersIgnored() {
-        // 재고 5, RESERVED 주문 100 → RESERVED는 제외하므로 여유
         Sample sample = new Sample("S-001", "SiC 파워기판", 0.8, 0.92, 5);
         Order reserved = new Order("ORD-001", "S-001", "고객A", 100, OrderStatus.RESERVED);
 
@@ -127,7 +130,6 @@ class MonitorServiceTest {
     @Test
     @DisplayName("PRODUCING 주문은 재고 부족 판단에 포함된다")
     void evaluateStockStatus_producingOrdersIncluded() {
-        // 재고 5, PRODUCING 주문 10 → 부족
         Sample sample = new Sample("S-002", "GaN-on-Si", 1.2, 0.85, 5);
         Order producing = new Order("ORD-001", "S-002", "고객A", 10, OrderStatus.PRODUCING);
 
@@ -136,19 +138,15 @@ class MonitorServiceTest {
         assertEquals(StockStatus.부족, status);
     }
 
-    // ── 전체 요약 통계 테스트 ──────────────────────────────────────────────
-
     @Test
     @DisplayName("전체 요약: 시료 3개, 총 재고 60, 전체 주문 5건(REJECTED 제외)")
     void getSummary_returnsCorrectStats() {
         MonitorService.SummaryStats stats = service.getSummary();
 
-        assertEquals(3, stats.totalSamples, "등록 시료 수");
-        assertEquals(60, stats.totalStock, "총 재고 (50+0+10)");
-        assertEquals(5L, stats.totalOrders, "전체 주문 수 (REJECTED 제외, 6개 중 1개 제외)");
+        assertEquals(3, stats.getTotalSamples(), "등록 시료 수");
+        assertEquals(60, stats.getTotalStock(), "총 재고 (50+0+10)");
+        assertEquals(5L, stats.getTotalOrders(), "전체 주문 수 (REJECTED 제외, 6개 중 1개 제외)");
     }
-
-    // ── 데이터 로딩 테스트 ─────────────────────────────────────────────────
 
     @Test
     @DisplayName("시료 파일을 정상적으로 읽는다")

@@ -7,15 +7,9 @@ import com.ssemi.view.ConsoleView;
 
 import java.util.Scanner;
 
-/**
- * S-Semi 데이터 모니터링 도구 진입점.
- *
- * 사용법:
- *   java -cp ... com.ssemi.MonitorApp [dataDir]
- *
- * dataDir 기본값: data  (프로젝트 루트 기준)
- */
 public class MonitorApp {
+
+    private static final String SEPARATOR = "=".repeat(70);
 
     public static void main(String[] args) {
         String dataDir = (args.length > 0) ? args[0] : "data";
@@ -23,12 +17,12 @@ public class MonitorApp {
         DataRepository repository = new DataRepository(dataDir);
         MonitorService service = new MonitorService(repository);
         ConsoleView view = new ConsoleView();
-        MonitorController controller = new MonitorController(service, view, repository);
+        MonitorController controller = new MonitorController(service, view);
 
-        System.out.println("======================================================================");
+        System.out.println(SEPARATOR);
         System.out.println("  S-Semi 데이터 모니터링 도구 시작");
         System.out.println("  데이터 경로: " + dataDir);
-        System.out.println("======================================================================");
+        System.out.println(SEPARATOR);
 
         try (Scanner scanner = new Scanner(System.in)) {
             controller.run(scanner);

@@ -14,9 +14,6 @@ import java.util.Map;
  */
 public class JsonReader {
 
-    /**
-     * JSON 배열 파일을 읽어 각 객체를 Map<String, String>으로 반환.
-     */
     public List<Map<String, String>> readArray(Path filePath) throws IOException {
         if (!Files.exists(filePath)) {
             return new ArrayList<>();
@@ -31,7 +28,6 @@ public class JsonReader {
             return result;
         }
 
-        // 바깥 배열 괄호 제거
         content = content.trim();
         if (content.startsWith("[")) {
             content = content.substring(1);
@@ -45,7 +41,6 @@ public class JsonReader {
             return result;
         }
 
-        // 객체 단위로 분리
         List<String> objects = splitObjects(content);
         for (String obj : objects) {
             Map<String, String> map = parseObject(obj.trim());
@@ -56,9 +51,7 @@ public class JsonReader {
         return result;
     }
 
-    /**
-     * 중첩을 고려하여 최상위 객체({...}) 단위로 분리.
-     */
+    // 중첩을 고려하여 최상위 객체({...}) 단위로 분리
     private List<String> splitObjects(String content) {
         List<String> objects = new ArrayList<>();
         int depth = 0;
@@ -81,46 +74,47 @@ public class JsonReader {
         return objects;
     }
 
-    /**
-     * { "key": "value", ... } 형태의 문자열을 Map으로 변환.
-     * 값은 모두 String으로 반환.
-     */
     private Map<String, String> parseObject(String obj) {
         Map<String, String> map = new HashMap<>();
         if (!obj.startsWith("{") || !obj.endsWith("}")) {
             return map;
         }
-        // 양쪽 중괄호 제거
         String inner = obj.substring(1, obj.length() - 1).trim();
 
-        // key-value 쌍 파싱
         int i = 0;
         while (i < inner.length()) {
-            // 공백 스킵
             while (i < inner.length() && Character.isWhitespace(inner.charAt(i))) i++;
             if (i >= inner.length()) break;
 
-            // 키 파싱 (따옴표로 감싸진 문자열)
             if (inner.charAt(i) != '"') { i++; continue; }
-            int keyStart = i + 1;
-            int keyEnd = inner.indexOf('"', keyStart);
-            if (keyEnd < 0) break;
-            String key = inner.substring(keyStart, keyEnd);
-            i = keyEnd + 1;
 
-            // 콜론 스킵
+            // 키 파싱 — 값과 동일하게 이스케이프 처리
+            i++;
+            StringBuilder keyBuilder = new StringBuilder();
+            while (i < inner.length()) {
+                char c = inner.charAt(i);
+                if (c == '\\' && i + 1 < inner.length()) {
+                    keyBuilder.append(inner.charAt(i + 1));
+                    i += 2;
+                } else if (c == '"') {
+                    break;
+                } else {
+                    keyBuilder.append(c);
+                    i++;
+                }
+            }
+            if (i >= inner.length()) break;
+            String key = keyBuilder.toString();
+            i++; // 닫는 따옴표 이동
+
             while (i < inner.length() && (inner.charAt(i) == ':' || Character.isWhitespace(inner.charAt(i)))) i++;
 
-            // 값 파싱
             String value;
             if (i >= inner.length()) break;
             char valueStart = inner.charAt(i);
             if (valueStart == '"') {
-                // 문자열 값
-                int vStart = i + 1;
-                // 이스케이프 고려
+                i++;
                 StringBuilder sb = new StringBuilder();
-                i = vStart;
                 while (i < inner.length()) {
                     char c = inner.charAt(i);
                     if (c == '\\' && i + 1 < inner.length()) {
@@ -134,19 +128,21 @@ public class JsonReader {
                     }
                 }
                 value = sb.toString();
-                i++; // 닫는 따옴표 이동
+                i++;
             } else {
-                // 숫자/불린/null 값
                 int vStart = i;
                 while (i < inner.length() && inner.charAt(i) != ',' && inner.charAt(i) != '}') {
                     i++;
                 }
                 value = inner.substring(vStart, i).trim();
+                // null 리터럴은 빈 문자열로 정규화
+                if ("null".equalsIgnoreCase(value)) {
+                    value = null;
+                }
             }
 
             map.put(key, value);
 
-            // 다음 쌍으로 이동 (콤마 스킵)
             while (i < inner.length() && (inner.charAt(i) == ',' || Character.isWhitespace(inner.charAt(i)))) i++;
         }
         return map;

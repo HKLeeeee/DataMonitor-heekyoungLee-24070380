@@ -6,13 +6,11 @@ import com.ssemi.model.Sample;
 import com.ssemi.model.StockStatus;
 import com.ssemi.repository.DataRepository;
 
+import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 모니터링에 필요한 집계·조회 비즈니스 로직을 담당.
- */
 public class MonitorService {
 
     private static final List<OrderStatus> MONITORED_STATUSES = List.of(
@@ -28,19 +26,14 @@ public class MonitorService {
         this.repository = repository;
     }
 
-    /** 파일에서 최신 시료 목록을 읽어 반환 */
     public List<Sample> getSamples() {
         return repository.loadSamples();
     }
 
-    /** 파일에서 최신 주문 목록을 읽어 반환 (REJECTED 포함 전체) */
     public List<Order> getAllOrders() {
         return repository.loadOrders();
     }
 
-    /**
-     * 모니터링 대상 상태(REJECTED 제외)의 상태별 주문 건수를 반환.
-     */
     public Map<OrderStatus, Long> countByStatus() {
         List<Order> orders = repository.loadOrders();
         Map<OrderStatus, Long> counts = new EnumMap<>(OrderStatus.class);
@@ -57,8 +50,7 @@ public class MonitorService {
     }
 
     /**
-     * 특정 시료에 대해 CONFIRMED + PRODUCING 주문의 총 수량을 구해
-     * 재고 상태(여유/부족/고갈)를 판단한다.
+     * CONFIRMED + PRODUCING 주문의 총 수량을 구해 재고 상태를 판단한다.
      *
      * - 재고 == 0 : 고갈
      * - 재고 < 대기 주문 총 수량 : 부족
@@ -79,9 +71,6 @@ public class MonitorService {
         return StockStatus.여유;
     }
 
-    /**
-     * 전체 요약 통계를 반환.
-     */
     public SummaryStats getSummary() {
         List<Sample> samples = repository.loadSamples();
         List<Order> orders = repository.loadOrders();
@@ -96,11 +85,20 @@ public class MonitorService {
         return new SummaryStats(totalSamples, totalStock, totalOrders, statusCounts);
     }
 
+    // Controller가 DataRepository를 직접 참조하지 않도록 경로 위임
+    public Path getSamplesPath() {
+        return repository.getSamplesPath();
+    }
+
+    public Path getOrdersPath() {
+        return repository.getOrdersPath();
+    }
+
     public static class SummaryStats {
-        public final int totalSamples;
-        public final int totalStock;
-        public final long totalOrders;
-        public final Map<OrderStatus, Long> statusCounts;
+        private final int totalSamples;
+        private final int totalStock;
+        private final long totalOrders;
+        private final Map<OrderStatus, Long> statusCounts;
 
         public SummaryStats(int totalSamples, int totalStock, long totalOrders,
                             Map<OrderStatus, Long> statusCounts) {
@@ -109,5 +107,10 @@ public class MonitorService {
             this.totalOrders = totalOrders;
             this.statusCounts = statusCounts;
         }
+
+        public int getTotalSamples() { return totalSamples; }
+        public int getTotalStock() { return totalStock; }
+        public long getTotalOrders() { return totalOrders; }
+        public Map<OrderStatus, Long> getStatusCounts() { return statusCounts; }
     }
 }

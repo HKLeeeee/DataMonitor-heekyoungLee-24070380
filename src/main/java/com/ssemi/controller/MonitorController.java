@@ -4,7 +4,6 @@ import com.ssemi.model.Order;
 import com.ssemi.model.Sample;
 import com.ssemi.model.StockStatus;
 import com.ssemi.model.OrderStatus;
-import com.ssemi.repository.DataRepository;
 import com.ssemi.service.MonitorService;
 import com.ssemi.view.ConsoleView;
 
@@ -12,19 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * 메뉴 루프를 제어하며 Service와 View를 연결하는 컨트롤러.
- */
 public class MonitorController {
 
     private final MonitorService service;
     private final ConsoleView view;
-    private final DataRepository repository;
 
-    public MonitorController(MonitorService service, ConsoleView view, DataRepository repository) {
+    public MonitorController(MonitorService service, ConsoleView view) {
         this.service = service;
         this.view = view;
-        this.repository = repository;
     }
 
     public void run(Scanner scanner) {
@@ -69,11 +63,10 @@ public class MonitorController {
     }
 
     private void handleRefresh() {
-        // MonitorService는 매 호출마다 파일을 다시 읽으므로 별도 캐시 무효화 불필요.
-        // 사용자에게 경로와 재로드 완료를 알린다.
+        // Service가 매 호출마다 파일을 새로 읽으므로 별도 캐시 무효화 불필요.
         view.printRefreshed(
-                repository.getSamplesPath().toAbsolutePath().toString(),
-                repository.getOrdersPath().toAbsolutePath().toString()
+                service.getSamplesPath().toAbsolutePath().toString(),
+                service.getOrdersPath().toAbsolutePath().toString()
         );
     }
 }
